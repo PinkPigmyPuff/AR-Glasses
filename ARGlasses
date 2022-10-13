@@ -1,0 +1,66 @@
+// input variables (ports)
+int piezo = 11;
+int yellowLED = 13;
+int redLED = 12;
+int distanceSensor = A0 ;
+
+// setting variables
+int normalFreq = 400;
+int closeFreq = 1000;
+int varyFreq = 300;
+int tooCloseMM = 50;
+
+
+// output variables
+int distanceSensorValue = 0;
+int actualDistanceMM = 0;
+int actualDelay = 0;
+
+void setup()
+{
+  pinMode(piezo, OUTPUT);
+  pinMode(yellowLED, OUTPUT);
+  pinMode(redLED, OUTPUT);
+  Serial.begin(9600);
+}
+
+void loop()
+{
+  // rescale the distance into millimeters
+  distanceSensorValue = analogRead(distanceSensor);
+  actualDistanceMM = map(distanceSensorValue, 0, 1023, 0, 3000);
+  actualDelay = map(distanceSensorValue, 0, 3000, 0, 10000);
+  //varyFreq = map(distanceSensorValue, 0, 600, 550, 150);
+  varyFreq = map(actualDistanceMM, 0, 1023, 750, -300);
+
+  // print out distance
+  Serial.print("Distance in millimeters: ");
+  Serial.println(actualDistanceMM);
+  Serial.print("Vary Freq: ");
+  Serial.println(varyFreq);
+
+  blinkClick();
+  delay(actualDelay);
+}
+
+void blinkClick()
+{
+  if(actualDistanceMM < tooCloseMM)
+  {
+  digitalWrite(redLED,HIGH);
+  tone(piezo, varyFreq);
+  delay(100);
+  digitalWrite(redLED,LOW);
+  noTone(piezo);
+  delay(100);
+  }
+  else if(actualDistanceMM > tooCloseMM)
+  {
+  digitalWrite(yellowLED,HIGH);
+  tone(piezo, varyFreq); 
+  delay(100);
+  digitalWrite(yellowLED,LOW);
+  noTone(piezo);
+  delay(100);
+  }
+}
